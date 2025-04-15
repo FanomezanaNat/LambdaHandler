@@ -10,13 +10,15 @@ import com.hei.springcloudtest.HttpServletRequestWrapper;
 import com.hei.springcloudtest.HttpServletResponseWrapper;
 import com.hei.springcloudtest.RequestEvent.LambdaUrlRequestEvent;
 import com.hei.springcloudtest.SpringCloudTestApplication;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.util.ServletRequestPathUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,7 +27,6 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.*;
 
-@Slf4j
 public class LambdaHandler implements RequestStreamHandler {
 
     public static final String SPRING_SERVER_PORT_FOR_RANDOM_VALUE = "0";
@@ -37,14 +38,14 @@ public class LambdaHandler implements RequestStreamHandler {
 
 
     private final ConfigurableApplicationContext applicationContext;
-    private static DispatcherServlet dispatcherServlet;
+    private final RequestMappingHandlerMapping handlerMapping;
+    private final RequestMappingHandlerAdapter handlerAdapter;
 
 
     public LambdaHandler() {
-
         this.applicationContext = applicationContext();
-        dispatcherServlet = applicationContext.getBean(DispatcherServlet.class);
-        dispatcherServlet.setApplicationContext(applicationContext);
+        this.handlerAdapter = applicationContext.getBean(RequestMappingHandlerAdapter.class);
+        this.handlerMapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
 
     }
 
@@ -63,11 +64,21 @@ public class LambdaHandler implements RequestStreamHandler {
 
         HttpServletRequest request = new HttpServletRequestWrapper(event);
 
+        ServletRequestPathUtils.parseAndCache(request);
+
 
         HttpServletResponseWrapper response = new HttpServletResponseWrapper((ByteArrayOutputStream) outputStream, headers);
+
         try {
-            dispatcherServlet.service(request, response);
-        } catch (ServletException e) {
+            HandlerExecutionChain executionChain = handlerMapping.getHandler(request);
+            if (executionChain == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
+            Object handler = executionChain.getHandler();
+            handlerAdapter.handle(request, response, handler);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
