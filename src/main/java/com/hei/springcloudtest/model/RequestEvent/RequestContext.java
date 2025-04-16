@@ -1,4 +1,4 @@
-package com.hei.springcloudtest.RequestEvent;
+package com.hei.springcloudtest.model.RequestEvent;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;

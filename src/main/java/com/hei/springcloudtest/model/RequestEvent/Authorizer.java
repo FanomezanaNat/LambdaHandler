@@ -1,4 +1,4 @@
-package com.hei.springcloudtest.RequestEvent;
+package com.hei.springcloudtest.model.RequestEvent;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

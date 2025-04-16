@@ -1,4 +1,4 @@
-package com.hei.springcloudtest;
+package com.hei.springcloudtest.model.wrapper;
 
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
@@ -51,12 +51,12 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
     }
 
     @Override
-    public void sendError(int i) throws IOException {
+    public void sendError(int i) {
         this.status = i;
     }
 
     @Override
-    public void sendRedirect(String s) throws IOException {
+    public void sendRedirect(String s) {
         this.status = HttpServletResponse.SC_MOVED_TEMPORARILY;
         this.headers.put("Location", List.of(s));
 
@@ -138,7 +138,7 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
     }
 
     @Override
-    public ServletOutputStream getOutputStream() throws IOException {
+    public ServletOutputStream getOutputStream() {
         return new ServletOutputStream() {
             @Override
             public boolean isReady() {
@@ -151,7 +151,7 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
             }
 
             @Override
-            public void write(int b) throws IOException {
+            public void write(int b) {
                 outputStream.write(b);
 
             }
@@ -159,7 +159,7 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
     }
 
     @Override
-    public PrintWriter getWriter() throws IOException {
+    public PrintWriter getWriter() {
         return new PrintWriter(outputStream);
     }
 
@@ -184,6 +184,7 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
     @Override
     public void setContentType(String s) {
         this.contentType = s;
+        headers.put("Content-Type", List.of(s));
 
     }
 
@@ -234,13 +235,4 @@ public class HttpServletResponseWrapper implements HttpServletResponse {
         return Locale.getDefault();
 
     }
-
-    public String getResponseBody() {
-        return outputStream.toString();
-    }
-
-    public Map<String, List<String>> getHeadersMap() {
-        return headers;
-    }
-
 }

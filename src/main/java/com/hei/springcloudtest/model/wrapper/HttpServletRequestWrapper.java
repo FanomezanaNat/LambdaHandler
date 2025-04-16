@@ -1,6 +1,6 @@
-package com.hei.springcloudtest;
+package com.hei.springcloudtest.model.wrapper;
 
-import com.hei.springcloudtest.RequestEvent.LambdaUrlRequestEvent;
+import com.hei.springcloudtest.model.RequestEvent.LambdaUrlRequestEvent;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 
@@ -11,10 +11,9 @@ import java.util.*;
 
 public class HttpServletRequestWrapper implements HttpServletRequest {
     private final LambdaUrlRequestEvent requestEvent;
-    private Map<String, Object> attributes;
+    private final Map<String, Object> attributes;
 
     static String CHARACTER_ENCODING = "UTF-8";
-
 
 
     public HttpServletRequestWrapper(LambdaUrlRequestEvent requestEvent) {
@@ -25,7 +24,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
     @Override
     public String getAuthType() {
-        return "";
+        return (String) requestEvent.getRequestContext().getAuthentication();
     }
 
     @Override
@@ -170,32 +169,32 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
     }
 
     @Override
-    public boolean authenticate(HttpServletResponse httpServletResponse) throws IOException, ServletException {
+    public boolean authenticate(HttpServletResponse httpServletResponse) {
         return false;
     }
 
     @Override
-    public void login(String s, String s1) throws ServletException {
+    public void login(String s, String s1) {
 
     }
 
     @Override
-    public void logout() throws ServletException {
+    public void logout() {
 
     }
 
     @Override
-    public Collection<Part> getParts() throws IOException, ServletException {
+    public Collection<Part> getParts() {
         return List.of();
     }
 
     @Override
-    public Part getPart(String s) throws IOException, ServletException {
+    public Part getPart(String s) {
         return null;
     }
 
     @Override
-    public <T extends HttpUpgradeHandler> T upgrade(Class<T> aClass) throws IOException, ServletException {
+    public <T extends HttpUpgradeHandler> T upgrade(Class<T> aClass) {
         return null;
     }
 
@@ -222,7 +221,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
             throw new UnsupportedEncodingException("Unsupported Encoding :" + s);
         }
 
-        CHARACTER_ENCODING = s ;
+        CHARACTER_ENCODING = s;
 
     }
 
@@ -242,7 +241,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
     }
 
     @Override
-    public ServletInputStream getInputStream() throws IOException {
+    public ServletInputStream getInputStream() {
         byte[] bodyBytes = requestEvent.getBody() == null ? new byte[0] : requestEvent.getBody().getBytes();
         ByteArrayInputStream byteStream = new ByteArrayInputStream(bodyBytes);
 
@@ -263,7 +262,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
             }
 
             @Override
-            public int read() throws IOException {
+            public int read() {
                 return byteStream.read();
             }
         };
@@ -322,7 +321,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
     }
 
     @Override
-    public BufferedReader getReader() throws IOException {
+    public BufferedReader getReader() {
         return new BufferedReader(new InputStreamReader(getInputStream()));
 
     }
@@ -437,13 +436,5 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
     @Override
     public ServletConnection getServletConnection() {
         return null;
-    }
-
-    public Map<String, List<String>> getHeaderMap() {
-        Map<String, List<String>> headersMap = new HashMap<>();
-        for (Map.Entry<String, String> entry : requestEvent.getHeaders().entrySet()) {
-            headersMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
-        }
-        return headersMap;
     }
 }
