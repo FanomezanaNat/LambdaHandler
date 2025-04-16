@@ -4,7 +4,7 @@
 codeuri = "/home/fanomezana/Documents/SpringCloudTest"
 runtime = "java21"
 architecture = "x86_64"
-handler = "com.hei.springcloudtest.handler.LambdaHandler"
+handler = "com.hei.springcloudtest.model.handler.LambdaHandler"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["SpringFunctionTest"]
