@@ -12,11 +12,6 @@ Resources:
   SpringFunctionTest:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: com.hei.springcloudtest.handler.LambdaHandler
+      FunctionName : SpringTestLambda
+      Handler: com.hei.springcloudtest.model.handler.LambdaHandler
       Runtime: java21
-      Events:
-        HelloApi:
-          Type: HttpApi
-          Properties:
-            Path: /hello
-            Method: GET

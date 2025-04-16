@@ -5,7 +5,7 @@
   "rawQueryString": "",
   "headers": {
     "accept": "*/*",
-    "content-type": "application/json"
+    "content-type": "text/plain"
   },
   "requestContext": {
     "http": {

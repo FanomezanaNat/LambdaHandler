@@ -1,23 +1,30 @@
-package com.hei.springcloudtest;
+package com.hei.springcloudtest.model.wrapper;
 
-import com.hei.springcloudtest.RequestEvent.LambdaUrlRequestEvent;
+import com.hei.springcloudtest.model.RequestEvent.LambdaUrlRequestEvent;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.*;
 
 public class HttpServletRequestWrapper implements HttpServletRequest {
     private final LambdaUrlRequestEvent requestEvent;
+    private final Map<String, Object> attributes;
+
+    static String CHARACTER_ENCODING = "UTF-8";
+
 
     public HttpServletRequestWrapper(LambdaUrlRequestEvent requestEvent) {
         this.requestEvent = requestEvent;
+        this.attributes = new HashMap<>();
+
     }
 
     @Override
     public String getAuthType() {
-        return "";
+        return (String) requestEvent.getRequestContext().getAuthentication();
     }
 
     @Override
@@ -120,7 +127,10 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
     @Override
     public StringBuffer getRequestURL() {
-        return null;
+        String protocol = getScheme().isEmpty() ? "https" : getScheme();
+        String host = requestEvent.getHeaders().getOrDefault("Host", "localhost");
+        String path = requestEvent.getRawPath();
+        return new StringBuffer(protocol + "://" + host + path);
     }
 
     @Override
@@ -159,52 +169,59 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
     }
 
     @Override
-    public boolean authenticate(HttpServletResponse httpServletResponse) throws IOException, ServletException {
+    public boolean authenticate(HttpServletResponse httpServletResponse) {
         return false;
     }
 
     @Override
-    public void login(String s, String s1) throws ServletException {
+    public void login(String s, String s1) {
 
     }
 
     @Override
-    public void logout() throws ServletException {
+    public void logout() {
 
     }
 
     @Override
-    public Collection<Part> getParts() throws IOException, ServletException {
+    public Collection<Part> getParts() {
         return List.of();
     }
 
     @Override
-    public Part getPart(String s) throws IOException, ServletException {
+    public Part getPart(String s) {
         return null;
     }
 
     @Override
-    public <T extends HttpUpgradeHandler> T upgrade(Class<T> aClass) throws IOException, ServletException {
+    public <T extends HttpUpgradeHandler> T upgrade(Class<T> aClass) {
         return null;
     }
 
     @Override
     public Object getAttribute(String s) {
-        return null;
+        return attributes.get(s);
     }
 
     @Override
     public Enumeration<String> getAttributeNames() {
-        return null;
+        return Collections.enumeration(attributes.keySet());
     }
 
     @Override
     public String getCharacterEncoding() {
-        return "";
+
+        return CHARACTER_ENCODING;
     }
 
     @Override
     public void setCharacterEncoding(String s) throws UnsupportedEncodingException {
+
+        if (s == null || !Charset.isSupported(CHARACTER_ENCODING)) {
+            throw new UnsupportedEncodingException("Unsupported Encoding :" + s);
+        }
+
+        CHARACTER_ENCODING = s;
 
     }
 
@@ -224,7 +241,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
     }
 
     @Override
-    public ServletInputStream getInputStream() throws IOException {
+    public ServletInputStream getInputStream() {
         byte[] bodyBytes = requestEvent.getBody() == null ? new byte[0] : requestEvent.getBody().getBytes();
         ByteArrayInputStream byteStream = new ByteArrayInputStream(bodyBytes);
 
@@ -245,7 +262,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
             }
 
             @Override
-            public int read() throws IOException {
+            public int read() {
                 return byteStream.read();
             }
         };
@@ -304,7 +321,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
     }
 
     @Override
-    public BufferedReader getReader() throws IOException {
+    public BufferedReader getReader() {
         return new BufferedReader(new InputStreamReader(getInputStream()));
 
     }
@@ -321,11 +338,13 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
     @Override
     public void setAttribute(String s, Object o) {
+        attributes.put(s, o);
 
     }
 
     @Override
     public void removeAttribute(String s) {
+        attributes.remove(s);
 
     }
 
@@ -417,13 +436,5 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
     @Override
     public ServletConnection getServletConnection() {
         return null;
-    }
-
-    public Map<String, List<String>> getHeaderMap() {
-        Map<String, List<String>> headersMap = new HashMap<>();
-        for (Map.Entry<String, String> entry : requestEvent.getHeaders().entrySet()) {
-            headersMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
-        }
-        return headersMap;
     }
 }
